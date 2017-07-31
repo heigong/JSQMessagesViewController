@@ -116,7 +116,7 @@ static void JSQInstallWorkaroundForSheetPresentationIssue26295020(void) {
 @property (nonatomic) NSLayoutConstraint *toolbarHeightConstraint;
 
 @property (strong, nonatomic) NSIndexPath *selectedIndexPathForMenu;
-
+@property (nonatomic) Boolean firstLayout;
 @end
 
 
@@ -245,10 +245,21 @@ static void JSQInstallWorkaroundForSheetPresentationIssue26295020(void) {
     [self.collectionView.collectionViewLayout invalidateLayout];
 
     if (self.automaticallyScrollsToMostRecentMessage) {
+        self.firstLayout = YES;
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self scrollToBottomAnimated:NO];
+            self.firstLayout = NO;
+        });
+        dispatch_async(dispatch_get_main_queue(), ^{
             [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
         });
+    }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    if (self.firstLayout && self.automaticallyScrollsToMostRecentMessage) {
+        [self scrollToBottomAnimated:NO];
     }
 }
 
